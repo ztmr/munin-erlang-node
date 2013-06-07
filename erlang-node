@@ -1,0 +1,30 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+%%! -smp enable -sname munin-erlang-node
+
+-define (NODE,   'test@hummingbird').
+-define (COOKIE, node).
+-define (WARN,   1073741824).
+-define (ALERT,  1610612736).
+
+main([_]) ->
+    io:format("graph_args --base 1024 -l 0~n", []),
+    io:format("graph_vlabel Bytes~ngraph_title Erlang node '~p' memory~ngraph_category erlang~n", [?NODE]),
+    io:format("graph_order atom ets processes binary total~n", []),
+    [io:format("~p.label ~p~n~p.draw STACK~n", [K, K, K]) || K <- [processes, atom, binary, ets]],
+    io:format("total.label total~ntotal.draw LINE2~n", []);
+
+main(_) ->
+    Data = get_data(),
+    {total, VTotal} = proplists:lookup(total, Data),
+    {processes, VProc} = proplists:lookup(processes, Data),
+    {atom, VAtoms} = proplists:lookup(atom, Data),
+    {binary, VBinary} = proplists:lookup(binary, Data),
+    {ets, VEts} = proplists:lookup(ets, Data),
+    io:format("total.value ~B~nprocesses.value ~B~natom.value ~B~nbinary.value ~B~nets.value ~B~n",
+        [VTotal, VProc, VAtoms, VBinary, VEts]).
+
+get_data() ->
+    erlang:set_cookie(node(), ?COOKIE),
+    net_adm:ping(?NODE),
+    rpc:call(?NODE, erlang, memory, []).
