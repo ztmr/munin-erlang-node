@@ -6,7 +6,7 @@ Munin plugin for Erlang node memory usage monitoring.
 Requirements
 ------------
 
-**Erlang R15B02**
+**Erlang R15B01**
 
 Usage
 -----
