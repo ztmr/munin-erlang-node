@@ -24,6 +24,7 @@ env.name   mynode@localhost  # node long name
 env.warn   1073741824        # warn when used memory exceeds this value (in bytes)
 env.crit   1610612736        # critical used memory amount for node
 ```
+
 4. Restart Munin node (``invoke-rc.d munin-node restart``).
 5. Enjoy.
 
