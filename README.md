@@ -12,16 +12,20 @@ Requirements
 Usage
 -----
 
-```
-wget https://github.com/Mendor/munin-erlang-node/blob/master/erlang-node
-chmod +x erlang-node
-mv erlang-node /usr/share/munin/plugins/
-ln -s /usr/share/munin/plugins/erlang-node /etc/munin/plugins/
-```
+Debian:
 
-Tested for Debian.
-
-Don't forget to edit ``erlang-node`` file on any stage and set your Erlang node name, cookie and warning/alert values.
+1. Download ``erlang_node_`` and move it to ``/usr/share/munin/plugins``. Check does the file have **+x** filesystem flag.
+2. ``ln -s /usr/share/munin/plugins/erlang_node_ /etc/munin/plugins/erlang_node_mynode`` (replace ``mynode`` with your node short name; if the node is accessible only using long name, it would be set in configuration).
+3. Create a new configuration file or edit existing one under ``/etc/munin/plugin.d`` directory. All the parameters are optional. Example:
+```ruby
+[erlang_node_mynode]
+env.cookie darkside          # the secret cookie used for node calls
+env.name   mynode@localhost  # node long name
+env.warn   1073741824        # warn when used memory exceeds this value (in bytes)
+env.crit   1610612736        # critical used memory amount for node
+```
+4. Restart Munin node (``invoke-rc.d munin-node restart``).
+5. Enjoy.
 
 License
 -------
