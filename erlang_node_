@@ -1,0 +1,68 @@
+#!/usr/bin/env perl
+
+# Munin plugin to monitor Erlang node memory usage.
+# Symlink the erlang_node_ script to erlang_node_xee to monitor node named 'xee'
+#
+# Configurable variables
+#   cookie      Cookie used for node calls (default value: nodecookie)
+#   name        Long name of node if required
+#   warn        cause Munin warning when total memory usage exceeds this value (in bytes)
+#   crit        cause Munin critical when total memory usage exceeds this value (in bytes)
+#
+# Magic markers:
+#%# family=erlang
+#%# capabilities=noautoconf
+
+use strict;
+use warnings;
+use 5.010;
+
+my %keys = (
+    'total' => 'LINE3',
+    'atom' => 'AREA',
+    'processes' => 'STACK',
+    'binary' => 'STACK',
+    'ets' => 'STACK',
+);
+
+# get node cookie from the appropriate environment variable
+my $cookie = exists $ENV{'cookie'} ? $ENV{'cookie'} : 'nodecookie';
+
+# get node name from symlink
+$0 =~ /erlang_node_(.+)*$/;
+my $node = exists $ENV{'name'} ? $ENV{'name'} : $1;
+die "Node isn't set." unless defined($node);
+
+# run
+if ($#ARGV < 0) {
+    my $data = `erl_call -c $cookie -a 'erlang memory' -n $node`;
+    $data =~ s/[^a-z0-9_\,]//g;
+    my %parsed = split(",", $data);
+
+    for my $key (keys %keys) {
+        say "${key}.value $parsed{$key}";
+    }
+}
+# config
+else {
+    if ($ARGV[0] eq "config") {
+        my $config = <<CF;
+graph_args --base 1024 -l 0
+graph_vlabel Bytes
+graph_title Erlang node '$node' memory usage
+graph_category erlang
+graph_order atom ets processes binary total
+CF
+        print $config;
+        for my $key (keys %keys) {
+            say "${key}.label ${key}";
+            say "${key}.draw $keys{$key}";
+        }
+        if (exists $ENV{'warn'}) {
+            say "total.warning $ENV{'warn'}";
+        }
+        if (exists $ENV{'crit'}) {
+            say "total.critical $ENV{'crit'}";
+        }
+    }
+}
