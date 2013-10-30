@@ -8,6 +8,7 @@
 #   name        Long name of node if required
 #   warn        cause Munin warning when total memory usage exceeds this value (in bytes)
 #   crit        cause Munin critical when total memory usage exceeds this value (in bytes)
+#   fqdn        Fully Qualified Domain Name
 #
 # Magic markers:
 #%# family=erlang
@@ -27,6 +28,7 @@ my %keys = (
 
 # get node cookie from the appropriate environment variable
 my $cookie = exists $ENV{'cookie'} ? $ENV{'cookie'} : 'nodecookie';
+my $fqdn = exists $ENV{'fqdn'} ? $ENV{'fqdn'} : `hostname -f`;
 
 # get node name from symlink
 $0 =~ /erlang_node_(.+)*$/;
@@ -49,7 +51,7 @@ else {
         my $config = <<CF;
 graph_args --base 1024 -l 0
 graph_vlabel Bytes
-graph_title Erlang node '$node' memory usage
+graph_title Erlang node '$fqdn' memory usage
 graph_category erlang
 graph_order atom ets processes binary total
 CF
